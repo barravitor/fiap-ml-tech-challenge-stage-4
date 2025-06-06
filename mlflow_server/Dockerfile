@@ -1,4 +1,6 @@
-FROM python:3.10-slim
+# mlflow_server/Dockerfile
+
+FROM python:3.10.12-slim
 
 USER root
 

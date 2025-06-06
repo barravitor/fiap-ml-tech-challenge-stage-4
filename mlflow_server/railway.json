@@ -1,6 +1,7 @@
 {
+  "$schema": "https://schema.up.railway.app/railway.schema.json",
   "build": {
-    "builder": "dockerfile",
+    "builder": "DOCKERFILE",
     "dockerfilePath": "./mlflow_server/Dockerfile"
   },
   "port": 80

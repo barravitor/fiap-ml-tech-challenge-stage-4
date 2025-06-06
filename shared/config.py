@@ -1,0 +1,29 @@
+# shared/config.py
+
+import torch
+from dotenv import load_dotenv
+import os
+
+load_dotenv(override=True)
+
+LIST_OF_ALLOWED_TICKETS=['PETR4.SA']
+MLFLOW_TRACKING_URI = os.getenv('MLFLOW_TRACKING_URI')
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
+TARGET = 'Close'
+SMA_WINDOW=10
+RSI_WINDOW=14
+FEATURES_COLS_DEFAULT = ['Close', 'High', 'Low', 'Open', 'Volume']
+FEATURES_COLS = FEATURES_COLS_DEFAULT + [f'SMA_{SMA_WINDOW}', f'RSI_{RSI_WINDOW}', f'Volume_MA_{SMA_WINDOW}', 'Volume_Relative']
+
+LEARNING_RATE=0.001
+TEST_SIZE_SPLIT=0.1
+NUM_EPOCHS=50
+NUMBER_OF_DAYS_TO_FORECAST=10
+
+HIDDEN_SIZE=64
+NUM_LAYERS=2
+OUTPUT_SIZE=1
+WINDOW_SIZE=30
+MINIMUM_NUMBER_OF_DATA=WINDOW_SIZE
+INPUT_SIZE=len(FEATURES_COLS)

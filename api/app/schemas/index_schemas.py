@@ -1,0 +1,1 @@
+from .predict_schemas import PredictBodySchema, PredictResponseSchema
