@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: mlflow-server
+    env: docker
+    repo: https://github.com/barravitor/fiap-ml-tech-challenge-stage-4
+    dockerfilePath: mlflow_server/Dockerfile
+    plan: free
+
+  # - type: web
+  #   name: api
+  #   env: docker
+  #   repo: https://github.com/barravitor/fiap-ml-tech-challenge-stage-4
+  #   dockerfilePath: api/Dockerfile
+  #   plan: free
