@@ -3,8 +3,18 @@ services:
     name: mlflow-server
     env: docker
     repo: https://github.com/barravitor/fiap-ml-tech-challenge-stage-4
-    dockerfilePath: mlflow_server/Dockerfile
     plan: free
+    region: oregon
+    branch: main
+    dockerfilePath: mlflow_server/Dockerfile
+    buildCommand: ""
+    startCommand: ./start_server.sh
+    envVars:
+      - key: MLFLOW_TRACKING_URI
+        value: http://0.0.0.0:5000
+    ports:
+      - port: 5000
+        protocol: http
 
   # - type: web
   #   name: api
