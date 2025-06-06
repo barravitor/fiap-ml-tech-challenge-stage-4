@@ -6,10 +6,9 @@ USER root
 RUN apt-get update && apt-get install -y nginx apache2-utils supervisor
 
 # Copy the code and configuration files
+RUN mkdir app && chmod 777 app
 WORKDIR /app
 COPY . /app
-
-RUN chmod 777 ./app
 
 # Copy the nginx password and config file to where nginx expects it
 COPY .htpasswd /etc/nginx/.htpasswd
