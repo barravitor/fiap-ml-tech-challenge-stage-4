@@ -1,18 +1,15 @@
 FROM python:3.10-slim
 
-# Installing system dependencies
-RUN apt-get update && apt-get install -y nginx apache2-utils supervisor passwd sudo
+USER root
 
-# Criate user
-RUN useradd -ms /bin/bash mlflowuser && \
-    echo "mlflowuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+# Installing system dependencies
+RUN apt-get update && apt-get install -y nginx apache2-utils supervisor
 
 # Copy the code and configuration files
 WORKDIR /app
 COPY . /app
-RUN chown -R mlflowuser:mlflowuser /app
 
-USER mlflowuser
+RUN chmod 777 ./app
 
 # Copy the nginx password and config file to where nginx expects it
 COPY .htpasswd /etc/nginx/.htpasswd
