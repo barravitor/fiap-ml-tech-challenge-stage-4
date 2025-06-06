@@ -1,13 +1,15 @@
 FROM python:3.10-slim
 
 # Installing system dependencies
-RUN apt-get update && apt-get install -y nginx apache2-utils supervisor
+RUN apt-get update && apt-get install -y nginx apache2-utils supervisor passwd
+
+# Criate user
+RUN useradd -ms /bin/bash mlflowuser
 
 # Copy the code and configuration files
 WORKDIR /app
 COPY . /app
-
-RUN useradd -ms /bin/bash mlflowuser && \ chown -R mlflowuser:mlflowuser /app
+RUN chown -R mlflowuser:mlflowuser /app
 
 USER mlflowuser
 
