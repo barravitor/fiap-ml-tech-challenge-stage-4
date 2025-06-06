@@ -1,0 +1,18 @@
+# Ignore project Python configs
+.venv
+.env
+__pycache__
+
+# Ignore models and datasets
+*.pt
+*.pkl
+*.onnx
+*.h5
+*.joblib
+*.csv
+*.xlsx
+
+# Ignore folders
+models/
+mlruns/
+data/
