@@ -3,11 +3,13 @@ FROM python:3.10-slim
 # Installing system dependencies
 RUN apt-get update && apt-get install -y nginx apache2-utils supervisor
 
-RUN mkdir -p /app && chmod -R 777 /app
-
 # Copy the code and configuration files
 WORKDIR /app
 COPY . /app
+
+RUN useradd -ms /bin/bash mlflowuser && \ chown -R mlflowuser:mlflowuser /app
+
+USER mlflowuser
 
 # Copy the nginx password and config file to where nginx expects it
 COPY .htpasswd /etc/nginx/.htpasswd
