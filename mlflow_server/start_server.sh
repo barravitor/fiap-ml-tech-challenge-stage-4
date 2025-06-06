@@ -1,9 +1,9 @@
 #!/bin/bash
 
-echo "[MLFLOW] Iniciando servidor MLflow..."
+echo "[MLFLOW] Starting MLflow server..."
 
 mlflow server \
-  --backend-store-uri file:/app/mlruns \
-  --default-artifact-root file:/app/mlruns \
+  --backend-store-uri ./mlruns \
+  --default-artifact-root ./mlruns \
   --host 0.0.0.0 \
   --port 5000
