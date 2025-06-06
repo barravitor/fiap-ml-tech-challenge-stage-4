@@ -1,7 +1,7 @@
 {
   "build": {
     "builder": "dockerfile",
-    "dockerfilePath": "./Dockerfile"
+    "dockerfilePath": "./mlflow_server/Dockerfile"
   },
   "port": 80
 }
