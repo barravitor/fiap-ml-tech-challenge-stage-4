@@ -1,0 +1,1 @@
+cd ./mlflow_server && mlflow ui

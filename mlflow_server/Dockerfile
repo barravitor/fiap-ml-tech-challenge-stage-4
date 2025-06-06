@@ -3,6 +3,8 @@ FROM python:3.10-slim
 # Installing system dependencies
 RUN apt-get update && apt-get install -y nginx apache2-utils supervisor
 
+RUN mkdir -p /app && chmod -R 777 /app
+
 # Copy the code and configuration files
 WORKDIR /app
 COPY . /app
