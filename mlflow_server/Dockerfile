@@ -1,10 +1,11 @@
 FROM python:3.10-slim
 
 # Installing system dependencies
-RUN apt-get update && apt-get install -y nginx apache2-utils supervisor passwd
+RUN apt-get update && apt-get install -y nginx apache2-utils supervisor passwd sudo
 
 # Criate user
-RUN useradd -ms /bin/bash mlflowuser
+RUN useradd -ms /bin/bash mlflowuser && \
+    echo "mlflowuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Copy the code and configuration files
 WORKDIR /app
