@@ -5,7 +5,9 @@ FROM python:3.10.12-slim
 USER root
 
 # Installing system dependencies
-RUN apt-get update && apt-get install -y nginx apache2-utils supervisor && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y nginx apache2-utils supervisor wget
+
+RUN rm -rf /var/lib/apt/lists/*
 
 # Copy the code and configuration files
 WORKDIR /app
