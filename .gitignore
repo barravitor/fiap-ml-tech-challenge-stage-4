@@ -3,7 +3,7 @@
 .env
 __pycache__
 
-# Ignore models and datasets
+# Ignore models and datasets and extensions
 *.pt
 *.pkl
 *.onnx
@@ -11,9 +11,11 @@ __pycache__
 *.joblib
 *.csv
 *.xlsx
+*.json
 
 # Ignore folders
 models/
 mlruns/
 data/
 mlartifacts/
+gcp-storage-service-account.json

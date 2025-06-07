@@ -1,12 +1,5 @@
 #!/bin/bash
 
-echo "⏳ Aguardando MinIO iniciar..."
-until curl -s http://localhost:9000/minio/health/ready | grep -q "OK"; do
-  sleep 1
-done
-
-echo "✅ MinIO está pronto. Iniciando MLflow..."
-
 DB_PATH=$(pwd)/data/mlflow.db
 ARTIFACT_PATH=$(pwd)/data/mlartifacts
 
