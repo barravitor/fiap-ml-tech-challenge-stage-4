@@ -1,13 +1,13 @@
 #!/bin/bash
 
-DB_PATH=$(pwd)/data/mlflow.db
-ARTIFACT_PATH=$(pwd)/data/mlartifacts
+# Cria o arquivo de credenciais a partir da variável de ambiente
+echo "$GOOGLE_CREDENTIALS_JSON" > ./gcp-storage-service-account.json
 
-# Cria banco se não existir
-touch $DB_PATH
+# (opcional) Verifica se o arquivo foi criado
+ls -l "$GOOGLE_APPLICATION_CREDENTIALS"
 
 mlflow server \
-  --backend-store-uri sqlite:///$DB_PATH \
-  --default-artifact-root s3://mlflow-artifacts \
+  --backend-store-uri sqlite:///$MLFLOW_DB_PATH \
+  --default-artifact-root $MLFLOW_ARTIFACT_PATH \
   --host 0.0.0.0 \
   --port 5000
