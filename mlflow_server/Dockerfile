@@ -8,7 +8,7 @@ USER root
 RUN apt-get update && apt-get install -y nginx apache2-utils supervisor && rm -rf /var/lib/apt/lists/*
 
 # Create directories to store MLflow data and artifacts
-RUN mkdir -p /mlflow/mlruns && chmod -R 777 /mlflow
+RUN mkdir -p /mlruns && chmod -R 777 /mlruns
 
 # Copy the code and configuration files
 WORKDIR /
@@ -28,8 +28,8 @@ EXPOSE 80
 COPY supervisord.conf /etc/supervisor/supervisord.conf
 
 # Environment variables for MLflow
-ENV MLFLOW_TRACKING_URI=file:///mlflow/mlruns
-ENV MLFLOW_ARTIFACT_ROOT=file:///mlflow/mlruns
+ENV MLFLOW_TRACKING_URI=file:///mlruns
+ENV MLFLOW_ARTIFACT_ROOT=file:///mlruns
 
 # Run supervisor to manage nginx + mlflow
 CMD ["supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]
