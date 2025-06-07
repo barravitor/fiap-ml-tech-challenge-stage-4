@@ -15,7 +15,7 @@ COPY ./mlflow_server /app
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
 # Copy the nginx password and config file to where nginx expects it
-COPY .htpasswd /etc/nginx/.htpasswd
+COPY ./mlflow_server/.htpasswd /etc/nginx/.htpasswd
 COPY ./mlflow_server/nginx.conf /etc/nginx/sites-enabled/default
 
 # Copy the supervisord.conf file to the expected location
