@@ -8,7 +8,7 @@ COPY ../requirements.txt /app/requirements.txt
 
 RUN pip install --upgrade pip && pip install torch==2.5.1+cu121 --index-url https://download.pytorch.org/whl/cu121 && pip install --no-cache-dir -r requirements.txt
 
-COPY ./api/app /app/app
+COPY ./app /app/app
 
 COPY ../shared /app/shared
 

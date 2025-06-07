@@ -1,4 +1,5 @@
 # app/schemas/predict_schemas.py
+
 from typing import List
 from pydantic import BaseModel, field_validator
 from shared.config import LIST_OF_ALLOWED_TICKETS
@@ -38,8 +39,9 @@ class DataItem(BaseModel):
     Volume_Relative: float
 
 class PredictResponseSchema(BaseModel):
-    predictions: List[int]
+    predictions: List[float]
     data: List[DataItem]
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "from_attributes": True
+    }

@@ -1,11 +1,12 @@
 # app/routes/predict_routes.py
 
 import io
+from typing import List
 import pandas as pd
 from fastapi import APIRouter, HTTPException
 
 from shared.utils import preprocess_dataframe
-from ..schemas.index_schemas import PredictBodySchema, PredictResponseSchema
+from ..schemas.predict_schemas import PredictBodySchema, PredictResponseSchema, DataItem
 from shared.config import FEATURES_COLS_DEFAULT, MINIMUM_NUMBER_OF_DATA, NUMBER_OF_DAYS_TO_FORECAST
 from shared.forecast_service import ForecastService
 
@@ -14,12 +15,12 @@ predict_router = APIRouter()
 FEATURES_COLS_DEFAULT_AND_DATE = ["Date"] + FEATURES_COLS_DEFAULT
 
 @predict_router.post("/",
+    response_model=PredictResponseSchema,
     responses={
         200: {
             "description": "Return a list with forecast",
             "content": {
                 "application/json": {
-                    "schema": PredictResponseSchema.model_json_schema(),
                     "example": {
                         "predictions": [31.12],
                         "data": [
@@ -99,7 +100,9 @@ def predict(request: PredictBodySchema):
     df_treated = preprocess_dataframe(df_raw)
     df_with_prediction, predictions = forecastService.predict(df_treated, number_of_forecast=NUMBER_OF_DAYS_TO_FORECAST)
 
-    return {
-        "predictions": [round(float(val), 3) for val in predictions],
-        "data": df_with_prediction[-NUMBER_OF_DAYS_TO_FORECAST:].to_dict(orient='records')
-    }
+    predictions = [round(float(val), 3) for val in predictions]
+
+    df_slice = df_with_prediction[-NUMBER_OF_DAYS_TO_FORECAST:]
+    data_items: List[DataItem] = [DataItem(**row) for row in df_slice.to_dict(orient="records")]
+
+    return PredictResponseSchema(predictions=predictions, data=data_items)
