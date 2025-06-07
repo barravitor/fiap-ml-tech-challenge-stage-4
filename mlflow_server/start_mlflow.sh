@@ -4,6 +4,11 @@ mkdir -p data mlartifacts
 
 DB_PATH=$(pwd)/data/mlflow.db
 ARTIFACT_PATH=$(pwd)/mlartifacts
+ARTIFACT_PATH1=$(pwd)/requirements.txt
+
+$echo $DB_PATH
+$echo $ARTIFACT_PATH
+$echo $ARTIFACT_PATH1
 
 mlflow server \
   --backend-store-uri sqlite:///$DB_PATH \
