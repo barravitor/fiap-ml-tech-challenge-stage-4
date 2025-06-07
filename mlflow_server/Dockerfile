@@ -24,7 +24,5 @@ COPY supervisord.conf /etc/supervisor/supervisord.conf
 # Expose port 80 (nginx)
 EXPOSE 80
 
-VOLUME /data
-
 # Run supervisor to manage nginx + mlflow
 CMD ["supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]
