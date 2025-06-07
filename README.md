@@ -3,6 +3,7 @@
 ## Índice
 
 - [Introduction](#introduction)
+- [Features](#features)
 - [Technologies Used](#technologies-used)
 - [Installation and run](#installation-and-run)
 - [Contribution](#contribution)
@@ -12,6 +13,45 @@
 ## Introduction
 
 Project responsible for training a deep learning algorithms for predict price on stocks on B3 [link](https://www.b3.com.br)
+
+## 🚀 Features
+
+- **🔁 Deep Learning with LSTM**  
+  A model based on LSTM neural networks for time series forecasting, ideal for capturing temporal patterns in stock market data.
+
+- **⚙️ Automated Preprocessing Pipeline**  
+  Includes:
+  - Calculation of technical indicators (SMA, RSI)
+  - Normalization using `MinMaxScaler`
+  - Time window generation
+  - Train/test data split
+
+- **📊 Experiment Tracking with MLflow**  
+  - Stores trained models with input signature and example
+  - Logs key metrics: MAE, RMSE, MAPE
+  - Logs training parameters and model architecture
+  - Model versioning and artifact storage (models and scalers)
+
+- **🧪 RESTful API with FastAPI**  
+  Interface for integration with external systems.
+
+  **Available Endpoints:**
+  - `POST /predict`: Sends input data and receives forecast output
+  - `GET /health`: Checks API health status
+
+- **🧱 Modular and Scalable Architecture**  
+  Code organized into reusable modules:
+  - `train`, `data_loader`, `forecast_service`, `api`
+  - Facilitates maintenance, testing, and extensibility
+
+- **💾 Scaler Persistence**  
+  - Input and output scalers are saved via MLflow and locally with `joblib`
+  - Ensures consistent inference and reusability in production
+
+- **📘 Auto-Generated Documentation with Swagger UI**  
+  Interactive interface available at `/docs` for testing and exploring API endpoints.
+
+  - [Full API documentation](docs/APIDocumentation.md)
 
 ## Technologies Used
 

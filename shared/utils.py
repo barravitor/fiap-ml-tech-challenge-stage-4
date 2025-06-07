@@ -2,9 +2,15 @@
 
 import os
 import joblib
+import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
-from .config import SMA_WINDOW, RSI_WINDOW, FEATURES_COLS
+import mlflow
+import torch
+from mlflow.models.signature import infer_signature
+from .config import (
+    SMA_WINDOW, RSI_WINDOW, FEATURES_COLS, DEVICE
+)
 
 def SMA(data: pd.Series, window: int = 10) -> pd.Series:
     return data.rolling(window=window, min_periods=window).mean()
@@ -23,7 +29,6 @@ def load_dataframe(ticker: str):
     return pd.read_csv(f"data/{ticker.replace('.', '_')}_historical.csv", skiprows=0)
 
 def preprocess_dataframe(df: pd.Series):
-    print(df.tail())
     df = df.rename(columns={ "Price": "Date" })
     df = df.iloc[2:]
     df = df.set_index("Date")
@@ -62,10 +67,61 @@ def preprocess_dataframe(df: pd.Series):
     return df
 
 def save_scaler(ticker: str, scaler_name: str, scaler: MinMaxScaler):
+    # n_features = scaler.n_features_in_
+
+    # input_example = np.zeros((1, n_features), dtype=float)
+    # output_example = scaler.transform(input_example)
+    # signature = infer_signature(input_example, output_example)
+
+    # mlflow.pyfunc.log_model(
+    #     artifact_path=scaler_name,
+    #     python_model=scaler,
+    #     input_example=input_example,
+    #     pip_requirements="requirements.txt",
+    #     signature=signature
+    # )
+
+    # Salvar localmente com joblib também
     model_dir = f"models/{ticker.replace('.', '_')}"
     os.makedirs(model_dir, exist_ok=True)
     joblib.dump(scaler, f"{model_dir}/{scaler_name}.pkl")
 
-def get_scaler(ticker: str, scaler_name: str):
+def load_scaler(ticker: str, scaler_name: str):
     model_dir = f"models/{ticker.replace('.', '_')}"
     return joblib.load(f"{model_dir}/{scaler_name}.pkl")
+
+def save_model(ticker: str, model,  X_train: np.ndarray):
+        """
+        Saves the trained model using MLflow and as a local .pt file.
+        """
+        model_dir = f"models/{ticker.replace('.', '_')}"
+        os.makedirs(model_dir, exist_ok=True)
+
+        # Create input example and infer signature
+        input_example = X_train[:1]
+        input_tensor = torch.tensor(input_example, dtype=torch.float32).to(DEVICE)
+
+        with torch.no_grad():
+            output = model(input_tensor).cpu().numpy()
+
+        signature = infer_signature(input_example, output)
+
+        # Save with MLflow
+        mlflow.pytorch.log_model(
+            model,
+            "model",
+            pip_requirements="requirements.txt",
+            signature=signature,
+            registered_model_name=f"LSTM-{ticker}"
+        )
+
+        # Save locally
+        torch.save(model.state_dict(), f"{model_dir}/lstm_model.pt")
+        print(f"[INFO] Model saved to: {model_dir}/lstm_model.pt")
+
+def load_model(ticker: str):
+        """
+        Saves the trained model using MLflow and as a local .pt file.
+        """
+        model_path = f"models/{ticker.replace('.', '_')}/lstm_model.pt"
+        return torch.load(model_path, map_location=DEVICE, weights_only=False)

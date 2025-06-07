@@ -9,9 +9,7 @@ import numpy as np
 from torch.utils.data import TensorDataset, DataLoader
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_absolute_error, root_mean_squared_error, mean_absolute_percentage_error
-import mlflow.pytorch
 from mlflow.data import from_pandas
-from mlflow.models.signature import infer_signature
 
 from .config import (
     HIDDEN_SIZE, INPUT_SIZE, NUM_LAYERS, OUTPUT_SIZE, DEVICE,
@@ -20,7 +18,7 @@ from .config import (
 )
 from .predict import predict
 from .lstm_model import LSTMModel
-from .utils import SMA, RSI, save_scaler, get_scaler
+from .utils import SMA, RSI, save_scaler, load_scaler, save_model, load_model
 
 class ForecastService:
     def __init__(self, ticker: str):
@@ -45,12 +43,11 @@ class ForecastService:
         Returns:
             tuple: (Updated DataFrame, list of predicted values)
         """
-        model_path = f"models/{self.ticker.replace('.', '_')}/lstm_model.pt"
-        self.model.load_state_dict(torch.load(model_path, map_location=self.device, weights_only=False))
+        self.model.load_state_dict(load_model(ticker=self.ticker))
         self.model.to(self.device)
 
-        scaler_X = get_scaler(self.ticker, 'scaler_X')
-        scaler_y = get_scaler(self.ticker, 'scaler_y')
+        scaler_X = load_scaler(self.ticker, 'scaler_X')
+        scaler_y = load_scaler(self.ticker, 'scaler_y')
 
         predictions = []
 
@@ -163,7 +160,7 @@ class ForecastService:
 
             print(f"[{epoch + 1:02d}/{NUM_EPOCHS}] Train Loss: {avg_train_loss:.6f} | Val Loss: {val_loss:.6f}")
 
-        self.save_model(X_train)
+        save_model(ticker=self.ticker, model=self.model, X_train=X_train)
         return self.model
 
     def evaluate_model(self, X_test: np.ndarray, y_test: np.ndarray) -> np.ndarray:
@@ -191,32 +188,3 @@ class ForecastService:
         mlflow.log_metric("MAPE", mape)
 
         return preds
-
-    def save_model(self, X_train: np.ndarray):
-        """
-        Saves the trained model using MLflow and as a local .pt file.
-        """
-        model_dir = f"models/{self.ticker.replace('.', '_')}"
-        os.makedirs(model_dir, exist_ok=True)
-
-        # Create input example and infer signature
-        input_example = X_train[:1]
-        input_tensor = torch.tensor(input_example, dtype=torch.float32).to(DEVICE)
-
-        with torch.no_grad():
-            output = self.model(input_tensor).cpu().numpy()
-
-        signature = infer_signature(input_example, output)
-
-        # Save with MLflow
-        mlflow.pytorch.log_model(
-            self.model,
-            "model",
-            pip_requirements="requirements.txt",
-            signature=signature,
-            registered_model_name=f"LSTM-{self.ticker}"
-        )
-
-        # Save locally
-        torch.save(self.model.state_dict(), f"{model_dir}/lstm_model.pt")
-        print(f"[INFO] Model saved to: {model_dir}/lstm_model.pt")
