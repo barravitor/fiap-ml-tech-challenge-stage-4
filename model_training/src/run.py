@@ -13,8 +13,8 @@ from shared.config import (
 )
 from shared.forecast_service import ForecastService
 
-
 if __name__ == "__main__":
+    mlflow.set_experiment("LSTM Training | FIAP ML 4")
     mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 
     for ticker in LIST_OF_ALLOWED_TICKETS:
