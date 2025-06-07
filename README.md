@@ -51,7 +51,7 @@ Project responsible for training a deep learning algorithms for predict price on
 - **📘 Auto-Generated Documentation with Swagger UI**  
   Interactive interface available at `/docs` for testing and exploring API endpoints.
 
-  - [Full API documentation](docs/APIDocumentation.md)
+  - [Full API documentation](https://fiap-ml-tech-challenge-stage-4-production.up.railway.app/docs)
 
 ## Technologies Used
 

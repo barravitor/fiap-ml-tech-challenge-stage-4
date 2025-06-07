@@ -31,6 +31,6 @@ app = FastAPI(
 
 app.include_router(router)
 
-@app.get("/")
+@app.get("/health")
 def read_root():
     return { "message": "Welcome to the API!" }
