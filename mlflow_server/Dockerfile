@@ -25,8 +25,14 @@ EXPOSE 80
 # Copy the supervisord.conf file to the expected location
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-RUN mkdir -p /tmp/mlruns
-RUN chmod -R 777 /tmp/mlruns
+# Create directories to store MLflow data and artifacts
+RUN mkdir -p /mlflow/mlruns
+
+RUN chmod 777 /mlflow/mlruns
+
+# Environment variables for MLflow
+ENV MLFLOW_TRACKING_URI=file:///mlflow/mlruns
+ENV MLFLOW_ARTIFACT_ROOT=file:///mlflow/mlruns
 
 # Run supervisor to manage nginx + mlflow
 CMD ["supervisord", "-n"]
