@@ -32,7 +32,7 @@ class ForecastService:
         ).to(self.device)
         self.model.eval()
 
-    def predict(self, df_treated: pd.DataFrame, number_of_forecast: int = 1) -> tuple[pd.DataFrame, list[float]]:
+    def predict(self, df_treated: pd.DataFrame, number_of_forecast: int = 1, run_id: str = None) -> tuple[pd.DataFrame, list[float]]:
         """
         Predicts future values and appends them to the treated DataFrame.
 
@@ -43,11 +43,13 @@ class ForecastService:
         Returns:
             tuple: (Updated DataFrame, list of predicted values)
         """
-        self.model.load_state_dict(load_model(ticker=self.ticker))
+
+        mlflow_model = load_model(ticker=self.ticker, run_id=run_id)
+        self.model.load_state_dict(mlflow_model)
         self.model.to(self.device)
 
-        scaler_X = load_scaler(self.ticker, 'scaler_X')
-        scaler_y = load_scaler(self.ticker, 'scaler_y')
+        scaler_X = load_scaler(self.ticker, 'scaler_X', run_id=run_id)
+        scaler_y = load_scaler(self.ticker, 'scaler_y', run_id=run_id)
 
         predictions = []
 

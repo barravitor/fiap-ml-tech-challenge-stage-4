@@ -3,6 +3,7 @@
 import io
 from typing import List
 import pandas as pd
+from mlflow.tracking import MlflowClient
 from fastapi import APIRouter, HTTPException
 
 from shared.utils import preprocess_dataframe
@@ -95,10 +96,19 @@ def predict(request: PredictBodySchema):
 
     if df_raw.shape[1] < len(FEATURES_COLS_DEFAULT_AND_DATE):
         raise HTTPException(status_code=400, detail=f"CSV data must be {len(FEATURES_COLS_DEFAULT_AND_DATE)} columns")
+    
+    client = MlflowClient()
+    model_name = f"LSTM-{request.ticker.upper()}"
+    alias_info = client.get_model_version_by_alias(model_name, 'Production')
 
     forecastService = ForecastService(request.ticker)
+
     df_treated = preprocess_dataframe(df_raw)
-    df_with_prediction, predictions = forecastService.predict(df_treated, number_of_forecast=NUMBER_OF_DAYS_TO_FORECAST)
+    df_with_prediction, predictions = forecastService.predict(
+        df_treated=df_treated,
+        number_of_forecast=NUMBER_OF_DAYS_TO_FORECAST,
+        run_id=alias_info.run_id,
+    )
 
     predictions = [round(float(val), 3) for val in predictions]
 
