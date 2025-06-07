@@ -25,5 +25,8 @@ EXPOSE 80
 # Copy the supervisord.conf file to the expected location
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+RUN mkdir -p /tmp/mlruns
+RUN chmod -R 777 /tmp/mlruns
+
 # Run supervisor to manage nginx + mlflow
 CMD ["supervisord", "-n"]
