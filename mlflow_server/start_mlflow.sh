@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DB_PATH=$(pwd)/data/mlflow.db
-ARTIFACT_PATH=$(pwd)/mlartifacts
+ARTIFACT_PATH=$(pwd)/data/mlartifacts
 
 mkdir -p "$(dirname "$DB_PATH")"
 mkdir -p "$ARTIFACT_PATH"
