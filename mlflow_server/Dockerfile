@@ -24,8 +24,8 @@ COPY nginx.conf /etc/nginx/sites-enabled/default
 # Copy the supervisord.conf file to the expected location
 COPY supervisord.conf /etc/supervisor/supervisord.conf
 
-# Run supervisor to manage nginx + mlflow
-CMD ["supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]
-
 # Expose port 80 (nginx)
 EXPOSE 80
+
+# Run supervisor to manage nginx + mlflow
+CMD ["supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]
