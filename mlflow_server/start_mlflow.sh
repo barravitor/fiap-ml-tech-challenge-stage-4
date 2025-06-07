@@ -1,7 +1,7 @@
 #!/bin/bash
 
-DB_PATH=/data/mlflow.db
-ARTIFACT_PATH=/data/mlartifacts
+DB_PATH=$(pwd)/data/mlflow.db
+ARTIFACT_PATH=$(pwd)/data/mlartifacts
 
 mlflow server \
   --backend-store-uri sqlite:///$DB_PATH \
