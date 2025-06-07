@@ -15,6 +15,10 @@ predict_router = APIRouter()
 
 FEATURES_COLS_DEFAULT_AND_DATE = ["Date"] + FEATURES_COLS_DEFAULT
 
+@predict_router.get("/")
+async def get_predict():
+    return {"method": "GET"}
+
 @predict_router.post("/",
     response_model=PredictResponseSchema,
     responses={
