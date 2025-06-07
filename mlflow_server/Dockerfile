@@ -7,12 +7,13 @@ USER root
 # Installing system dependencies
 RUN apt-get update && apt-get install -y nginx apache2-utils supervisor && rm -rf /var/lib/apt/lists/*
 
-# Create directories to store MLflow data and artifacts
-RUN mkdir -p /mlflow/mlruns && chmod -R 777 /mlflow
-
 # Copy the code and configuration files
-WORKDIR /app
-COPY . /app
+WORKDIR /
+COPY . /
+
+# Create directories to store MLflow data and artifacts
+RUN mkdir -p /data && chmod -R 777 /data
+RUN mkdir -p /mlartifacts && chmod -R 777 /mlartifacts
 
 # Install mlflow and other Python libs
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt

@@ -16,3 +16,4 @@ __pycache__
 models/
 mlruns/
 data/
+mlartifacts/
