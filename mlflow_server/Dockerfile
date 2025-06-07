@@ -16,10 +16,10 @@ RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
 # Copy the nginx password and config file to where nginx expects it
 COPY .htpasswd /etc/nginx/.htpasswd
-COPY nginx.conf /etc/nginx/sites-enabled/default
+COPY ./nginx.conf /etc/nginx/sites-enabled/default
 
 # Copy the supervisord.conf file to the expected location
-COPY supervisord.conf /etc/supervisor/supervisord.conf
+COPY ./supervisord.conf /etc/supervisor/supervisord.conf
 
 # Expose port 80 (nginx)
 EXPOSE 80
