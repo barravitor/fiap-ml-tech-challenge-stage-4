@@ -5,6 +5,8 @@ set -a
 source .env
 set +a
 
+mkdir -p $MLFLOW_ARTIFACT_PATH
+
 ls -l "$GOOGLE_APPLICATION_CREDENTIALS"
 
 mlflow server \
