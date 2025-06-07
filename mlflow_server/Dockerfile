@@ -11,10 +11,6 @@ RUN apt-get update && apt-get install -y nginx apache2-utils supervisor && rm -r
 WORKDIR /
 COPY . /
 
-# Create directories to store MLflow data and artifacts
-RUN mkdir -p /data && chmod -R 777 /data
-RUN mkdir -p /mlartifacts && chmod -R 777 /mlartifacts
-
 # Install mlflow and other Python libs
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
@@ -27,6 +23,8 @@ COPY supervisord.conf /etc/supervisor/supervisord.conf
 
 # Expose port 80 (nginx)
 EXPOSE 80
+
+VOLUME /data
 
 # Run supervisor to manage nginx + mlflow
 CMD ["supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]
