@@ -1,14 +1,12 @@
 # app/routes/predict_routes.py
 
 import io
-import torch
 from typing import List
 import pandas as pd
-import mlflow.pytorch
 from mlflow.tracking import MlflowClient
 from fastapi import APIRouter, HTTPException
 
-from shared.utils import preprocess_dataframe
+from shared.utils import preprocess_dataframe, load_mlflow_model
 from ..schemas.predict_schemas import PredictBodySchema, PredictResponseSchema, DataItem
 from shared.config import (FEATURES_COLS_DEFAULT, MINIMUM_NUMBER_OF_DATA, NUMBER_OF_DAYS_TO_FORECAST)
 from shared.forecast_service import ForecastService
@@ -100,33 +98,22 @@ def predict(request: PredictBodySchema):
         raise HTTPException(status_code=400, detail=f"CSV data must be {len(FEATURES_COLS_DEFAULT_AND_DATE)} columns")
 
     client = MlflowClient()
-    MODEL_NAME = f"LSTM-{request.ticker.upper()}"
+    model_name = f"LSTM-{request.ticker.upper()}"
 
-    print('MODEL_NAME', MODEL_NAME)
-
-    prod_version = client.get_model_version_by_alias(MODEL_NAME, 'Production')
-
-    mlflow_model_uri = f"models:/{MODEL_NAME}/{prod_version.version}"
-
-    print('mlflow_model_uri', mlflow_model_uri)
-
-    mlflow_model = mlflow.pytorch.load_model(mlflow_model_uri, map_location=torch.device('cpu'))
-
-    print('mlflow_model', mlflow_model)
-
-    forecastService = ForecastService(request.ticker)
+    prod_version = client.get_model_version_by_alias(model_name, 'Production')
+    model = load_mlflow_model(model_name, prod_version.version)
 
     df_treated = preprocess_dataframe(df_raw)
-    df_with_prediction, predictions = forecastService.predict(
-        df_treated=df_treated,
-        number_of_forecast=NUMBER_OF_DAYS_TO_FORECAST,
-        run_id=prod_version.run_id,
-        model_version=prod_version.version,
-    )
 
-    predictions = [round(float(val), 3) for val in predictions]
+    forecastService = ForecastService()
+
+    df_with_prediction, predictions = forecastService.forecast_n_steps(
+        model=model,
+        df_treated=df_treated,
+        number_of_forecast=NUMBER_OF_DAYS_TO_FORECAST
+    )
 
     df_slice = df_with_prediction[-NUMBER_OF_DAYS_TO_FORECAST:]
     data_items: List[DataItem] = [DataItem(**row) for row in df_slice.to_dict(orient="records")]
 
-    return PredictResponseSchema(predictions=predictions, data=data_items)
+    return PredictResponseSchema(predictions=[round(float(val), 3) for val in predictions], data=data_items)

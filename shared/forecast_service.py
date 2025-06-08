@@ -1,6 +1,5 @@
 # shared/forecast_service.py
 
-import os
 import torch
 import mlflow
 import pandas as pd
@@ -12,27 +11,14 @@ from sklearn.metrics import mean_absolute_error, root_mean_squared_error, mean_a
 from mlflow.data import from_pandas
 
 from .config import (
-    HIDDEN_SIZE, INPUT_SIZE, NUM_LAYERS, OUTPUT_SIZE, DEVICE,
-    FEATURES_COLS, TARGET, WINDOW_SIZE, LEARNING_RATE, NUM_EPOCHS,
-    SMA_WINDOW, RSI_WINDOW
+    DEVICE, FEATURES_COLS, TARGET, WINDOW_SIZE,
+    LEARNING_RATE, NUM_EPOCHS, SMA_WINDOW, RSI_WINDOW
 )
-from .predict import predict
 from .lstm_model import LSTMModel
-from .utils import SMA, RSI, save_scaler, load_scaler, save_model, load_model
+from .utils import SMA, RSI, save_scaler, save_model
 
 class ForecastService:
-    def __init__(self, ticker: str):
-        self.ticker = ticker
-        self.device = DEVICE
-        self.model = LSTMModel(
-            hidden_size=HIDDEN_SIZE,
-            input_size=INPUT_SIZE,
-            num_layers=NUM_LAYERS,
-            output_size=OUTPUT_SIZE
-        ).to(self.device)
-        self.model.eval()
-
-    def predict(self, df_treated: pd.DataFrame, number_of_forecast: int = 1, run_id: str = None, model_version: int = 1) -> tuple[pd.DataFrame, list[float]]:
+    def forecast_n_steps(self, model: LSTMModel, df_treated: pd.DataFrame, number_of_forecast: int = 1) -> tuple[pd.DataFrame, list[float]]:
         """
         Predicts future values and appends them to the treated DataFrame.
 
@@ -43,22 +29,9 @@ class ForecastService:
         Returns:
             tuple: (Updated DataFrame, list of predicted values)
         """
-
-        mlflow_model = load_model(
-            ticker=self.ticker,
-            run_id=run_id,
-            model_version=model_version
-        )
-        self.model.load_state_dict(mlflow_model)
-        self.model.to(self.device)
-
-        scaler_X = load_scaler(self.ticker, 'scaler_X', run_id=run_id, model_version=model_version)
-        scaler_y = load_scaler(self.ticker, 'scaler_y', run_id=run_id, model_version=model_version)
-
         predictions = []
-
         for _ in range(number_of_forecast):
-            next_value = predict(self.model, df_treated, scaler_X, scaler_y)
+            next_value = model.predict(df_treated)
             predictions.append(next_value)
 
             # Append prediction to the DataFrame
@@ -81,11 +54,9 @@ class ForecastService:
                 if col in subset.columns:
                     df_treated.at[df_treated.index[-1], col] = subset[col].iloc[-1]
 
-            print(f"[PREDICTION] Next value for '{TARGET}': {next_value:.4f}")
-
         return df_treated, predictions
 
-    def generate_scaler(self, df: pd.DataFrame) -> tuple[np.ndarray, np.ndarray, MinMaxScaler, MinMaxScaler]:
+    def generate_scaler(self, ticker: str, df: pd.DataFrame) -> tuple[np.ndarray, np.ndarray, MinMaxScaler, MinMaxScaler]:
         """
         Scales the dataset and generates input-output sequences for training.
 
@@ -105,8 +76,8 @@ class ForecastService:
         y_scaled = scaler_y.fit_transform(y_raw)
 
         # Save scalers
-        save_scaler(self.ticker, 'scaler_X', scaler_X)
-        save_scaler(self.ticker, 'scaler_y', scaler_y)
+        save_scaler(ticker, 'scaler_X', scaler_X)
+        save_scaler(ticker, 'scaler_y', scaler_y)
 
         # Generate sliding window sequences
         X, y = [], []
@@ -116,7 +87,7 @@ class ForecastService:
 
         return np.array(X), np.array(y), scaler_X, scaler_y
 
-    def train(self, X_train: np.ndarray, X_test: np.ndarray, y_train: np.ndarray, y_test: np.ndarray) -> LSTMModel:
+    def train(self, model: LSTMModel, X_train: np.ndarray, X_test: np.ndarray, y_train: np.ndarray, y_test: np.ndarray) -> LSTMModel:
         """
         Trains the LSTM model.
 
@@ -140,24 +111,24 @@ class ForecastService:
 
         # Model training
         criterion = torch.nn.MSELoss()
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=LEARNING_RATE)
+        optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
         for epoch in range(NUM_EPOCHS):
-            self.model.train()
+            model.train()
             total_loss = 0.0
 
             for xb, yb in train_loader:
                 xb, yb = xb.to(DEVICE), yb.to(DEVICE)
                 optimizer.zero_grad()
-                loss = criterion(self.model(xb), yb)
+                loss = criterion(model(xb), yb)
                 loss.backward()
                 optimizer.step()
                 total_loss += loss.item()
 
             # Validation
-            self.model.eval()
+            model.eval()
             with torch.no_grad():
-                val_pred = self.model(X_test_tensor.to(DEVICE))
+                val_pred = model(X_test_tensor.to(DEVICE))
                 val_loss = criterion(val_pred, y_test_tensor.to(DEVICE)).item()
 
             avg_train_loss = total_loss / len(train_loader)
@@ -166,19 +137,19 @@ class ForecastService:
 
             print(f"[{epoch + 1:02d}/{NUM_EPOCHS}] Train Loss: {avg_train_loss:.6f} | Val Loss: {val_loss:.6f}")
 
-        save_model(ticker=self.ticker, model=self.model, X_train=X_train)
-        return self.model
+        save_model(ticker=model.ticker, model=model, X_train=X_train)
+        return model
 
-    def evaluate_model(self, X_test: np.ndarray, y_test: np.ndarray) -> np.ndarray:
+    def evaluate_model(self, model: LSTMModel, X_test: np.ndarray, y_test: np.ndarray) -> np.ndarray:
         """
         Evaluates the trained model on the test set.
 
         Returns:
             np.ndarray: Model predictions on test set.
         """
-        self.model.eval()
+        model.eval()
         with torch.no_grad():
-            preds = self.model(torch.tensor(X_test, dtype=torch.float32).to(DEVICE)).cpu().numpy().squeeze()
+            preds = model(torch.tensor(X_test, dtype=torch.float32).to(DEVICE)).cpu().numpy().squeeze()
 
         mae = mean_absolute_error(y_test, preds)
         rmse = root_mean_squared_error(y_test, preds)

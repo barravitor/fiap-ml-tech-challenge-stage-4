@@ -8,7 +8,7 @@ load_dotenv(override=True)
 
 LIST_OF_ALLOWED_TICKETS=['PETR4.SA', 'VALE3.SA', 'ITUB4.SA', 'B3SA3.SA', 'BBAS3.SA', 'WEGE3.SA', 'ABEV3.SA']
 MLFLOW_TRACKING_URI = os.getenv('MLFLOW_TRACKING_URI')
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 TARGET = 'Close'
 SMA_WINDOW=10
