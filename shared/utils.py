@@ -123,6 +123,9 @@ def load_model(ticker: str, run_id: str = None, model_version: int = 1):
     Saves the trained model using MLflow and as a local .pth file.
     """
 
+    print("GOOGLE_APPLICATION_CREDENTIALS =", os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+    print("File exists:", os.path.exists(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")))
+
     model_path = f"models/{ticker.replace('.', '_')}"
 
     if run_id is not None:

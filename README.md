@@ -75,7 +75,7 @@ Required python version: 3.10.12
 ```bash
 python3.10 -m venv .venv # Run to create the environment
 source .venv/bin/activate # Run to start the environment
-pip install torch==2.5.1+cu121 --index-url https://download.pytorch.org/whl/cu121 # Run to install PyTorch
+pip install torch==2.5.1+cu121 --index-url https://download.pytorch.org/whl/cu121 # Run to install PyTorch in the right version
 pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt # Run to install the necessary packages
 ```
 
