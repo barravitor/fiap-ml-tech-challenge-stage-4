@@ -1,5 +1,6 @@
 # shared/forecast_service.py
 
+from matplotlib import pyplot as plt
 import torch
 import mlflow
 import pandas as pd
@@ -15,7 +16,7 @@ from .config import (
     LEARNING_RATE, NUM_EPOCHS, SMA_WINDOW, RSI_WINDOW
 )
 from .lstm_model import LSTMModel
-from .utils import SMA, RSI, save_scaler, save_model
+from .utils import SMA, RSI, save_scaler, save_model, create_folder
 
 class ForecastService:
     def forecast_n_steps(self, model: LSTMModel, df_treated: pd.DataFrame, number_of_forecast: int = 1) -> tuple[pd.DataFrame, list[float]]:
@@ -113,6 +114,9 @@ class ForecastService:
         criterion = torch.nn.MSELoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
+        train_losses = []
+        val_losses = []
+
         for epoch in range(NUM_EPOCHS):
             model.train()
             total_loss = 0.0
@@ -135,7 +139,31 @@ class ForecastService:
             mlflow.log_metric("train_loss", avg_train_loss, step=epoch)
             mlflow.log_metric("val_loss", val_loss, step=epoch)
 
+            train_losses.append(avg_train_loss)
+            val_losses.append(val_loss)
+
             print(f"[{epoch + 1:02d}/{NUM_EPOCHS}] Train Loss: {avg_train_loss:.6f} | Val Loss: {val_loss:.6f}")
+
+        file_path = create_folder(f"./tmp/{model.ticker.replace('.', '_')}")
+        plt.figure(figsize=(14, 8))
+        plt.plot(train_losses, label="Train Loss")
+        plt.plot(val_losses, label="Val Loss")
+        plt.title("Curva de Aprendizado")
+        plt.xlabel("Época")
+        plt.ylabel("Loss")
+        plt.legend()
+        plt.text(0, max(train_losses + val_losses) * 0.9,
+            "Este gráfico mostra como o erro (loss) evolui durante o treinamento.\n"
+            "- 'Train Loss' representa o erro no conjunto de treino.\n"
+            "- 'Val Loss' representa o erro no conjunto de validação.\n\n"
+            "Uma boa convergência ocorre quando ambas curvas diminuem e permanecem próximas.\n"
+            "Se a Val Loss aumenta enquanto a Train Loss diminui, pode indicar overfitting.",
+            fontsize=10, bbox=dict(facecolor='white', alpha=0.7))
+        plt.grid()
+        plt.tight_layout()
+        plt.savefig(f'{file_path}/learning_curve.png')
+        plt.close()
+        mlflow.log_artifact(f'{file_path}/learning_curve.png')
 
         save_model(ticker=model.ticker, model=model, X_train=X_train)
         return model
@@ -165,3 +193,88 @@ class ForecastService:
         mlflow.log_metric("MAPE", mape)
 
         return preds
+    
+    def validate_predictions(self, model: LSTMModel, ticker: str, X_test: np.ndarray, y_test: np.ndarray):
+        file_path = create_folder(f"./tmp/{ticker.replace('.', '_')}")
+
+        with torch.no_grad():
+            inputs = torch.tensor(X_test, dtype=torch.float32).to(DEVICE)
+            preds_scaled = model(inputs).cpu().numpy()
+        
+        y_preds = model.scaler_y.inverse_transform(preds_scaled.reshape(-1, 1))
+        y_true = model.scaler_y.inverse_transform(y_test.reshape(-1, 1))
+
+        plt.figure(figsize=(14, 8))
+        plt.plot(y_true, label="Valor Real")
+        plt.plot(y_preds, label="Previsão")
+        plt.title("Previsão vs Valor Real")
+        plt.xlabel("Amostras")
+        plt.ylabel("Valor")
+        plt.legend()
+        plt.text(0, max(y_true)*0.9,
+            "Este gráfico compara o valor real com o valor previsto pelo modelo.\n"
+            "Linhas próximas indicam boa performance de previsão.",
+            fontsize=10, bbox=dict(facecolor='white', alpha=0.7))
+        plt.tight_layout()
+        plt.savefig(f'{file_path}/forecast_vs_value.png')
+        plt.close() 
+        mlflow.log_artifact(f'{file_path}/forecast_vs_value.png')
+
+        plt.figure(figsize=(14, 8))
+        errors = y_true - y_preds
+        plt.plot(errors)
+        plt.title("Resíduos ao longo do tempo")
+        plt.xlabel("Tempo")
+        plt.ylabel("Erro")
+        plt.grid()
+        plt.text(0, max(errors)*0.8,
+            "Este gráfico mostra a diferença (erro) entre valor real e previsão ao longo do tempo.\n"
+            "Idealmente, os resíduos devem oscilar próximos de zero, sem padrão aparente.",
+            fontsize=10, bbox=dict(facecolor='white', alpha=0.7))
+        plt.tight_layout()
+        plt.savefig(f'{file_path}/waste_over_time.png')
+        plt.close() 
+        mlflow.log_artifact(f'{file_path}/waste_over_time.png')
+
+        plt.figure(figsize=(14, 8))
+        plt.scatter(y_true, y_preds, alpha=0.5)
+        plt.plot([min(y_true), max(y_true)], [min(y_true), max(y_true)], 'r--')  # linha ideal
+        plt.xlabel("Valor real")
+        plt.ylabel("Previsão")
+        plt.title("Previsão vs Valor Real")
+        plt.grid()
+        plt.text(min(y_true), max(y_preds)*0.9,
+            "Cada ponto representa uma previsão comparada ao valor real.\n"
+            "A linha tracejada representa a previsão perfeita (y = x).\n"
+            "Quanto mais próximos da linha, melhores as previsões.",
+            fontsize=10, bbox=dict(facecolor='white', alpha=0.7))
+        plt.tight_layout()
+        plt.savefig(f'{file_path}/scatter_real_vs_pred.png')
+        plt.close() 
+        mlflow.log_artifact(f'{file_path}/waste_over_time.png')
+
+        plt.figure(figsize=(14, 8))
+        plt.boxplot(y_true - y_preds)
+        plt.title("Distribuição dos Erros")
+        plt.text(1.1, max(y_true - y_preds)*0.8,
+            "A caixa representa os 50% centrais dos erros.\n"
+            "A linha no centro da caixa é a mediana do erro.\n"
+            "Pontos fora das linhas são outliers (erros extremos).",
+            fontsize=10, bbox=dict(facecolor='white', alpha=0.7))
+        plt.tight_layout()
+        plt.savefig(f'{file_path}/error_distribution.png')
+        plt.close() 
+        mlflow.log_artifact(f'{file_path}/error_distribution.png')
+
+        plt.figure(figsize=(14, 8))
+        plt.hist(y_true - y_preds, bins=30, alpha=0.7)
+        plt.title("Histograma dos Resíduos")
+        plt.text(min(y_true - y_preds), plt.ylim()[1]*0.8,
+            "Distribuição da frequência dos erros de previsão.\n"
+            "Uma curva simétrica e centrada no zero indica que os erros\n"
+            "são aleatórios e não tendenciosos (sem viés).",
+            fontsize=10, bbox=dict(facecolor='white', alpha=0.7))
+        plt.tight_layout()
+        plt.savefig(f'{file_path}/residual_histogram.png')
+        plt.close() 
+        mlflow.log_artifact(f'{file_path}/residual_histogram.png')

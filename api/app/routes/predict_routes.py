@@ -15,7 +15,7 @@ predict_router = APIRouter()
 
 FEATURES_COLS_DEFAULT_AND_DATE = ["Date"] + FEATURES_COLS_DEFAULT
 
-@predict_router.post("/stocks",
+@predict_router.post("/",
     response_model=PredictResponseSchema,
     responses={
         200: {
@@ -28,8 +28,8 @@ FEATURES_COLS_DEFAULT_AND_DATE = ["Date"] + FEATURES_COLS_DEFAULT
                             {
                                 "Close": 31.11992073059082,
                                 "High": 32.03924146833904,
-                                "Low": 31.5513799266813,
-                                "Open": 31.844098881908675,
+                                # "Low": 31.5513799266813,
+                                # "Open": 31.844098881908675,
                                 "Volume": 20776200.0,
                                 "SMA_10": 31.63815269470215,
                                 "RSI_14": 31.14500599404569,

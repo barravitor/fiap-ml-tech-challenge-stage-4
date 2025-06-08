@@ -35,9 +35,9 @@ class LSTMModel(nn.Module):
             prediction_scaled = self(input_tensor).cpu().numpy()
 
         # Inverse scale the prediction
-        prediction_unscaled = self.scaler_y.inverse_transform(prediction_scaled)
+        prediction_unscaled = self.scaler_y.inverse_transform(prediction_scaled.reshape(-1, 1))
 
-        next_value = prediction_unscaled[0][0]
+        next_value = float(prediction_unscaled.squeeze())
 
         print(f"[PREDICTION] Next value for '{TARGET}': {next_value:.4f}")
         return next_value

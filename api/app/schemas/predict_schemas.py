@@ -29,9 +29,9 @@ class PredictBodySchema(BaseModel):
 
 class DataItem(BaseModel):
     Close: float
-    High: float
-    Low: float
-    Open: float
+    # High: float
+    # Low: float
+    # Open: float
     Volume: float
     SMA_10: float
     RSI_14: float

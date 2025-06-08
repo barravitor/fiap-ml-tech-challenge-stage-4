@@ -30,6 +30,10 @@ def RSI(data: pd.Series, window: int = 14) -> pd.Series:
 def load_dataframe(ticker: str):
     return pd.read_csv(f"data/{ticker.replace('.', '_')}_historical.csv", skiprows=0)
 
+def create_folder(path: str):
+    os.makedirs(path, exist_ok=True)
+    return path
+
 def preprocess_dataframe(df: pd.Series):
     df = df.rename(columns={ "Price": "Date" })
     df = df.iloc[2:]
@@ -70,7 +74,7 @@ def preprocess_dataframe(df: pd.Series):
 
 def save_scaler(ticker: str, scaler_name: str, scaler: MinMaxScaler):
     model_dir = f"models/{ticker.replace('.', '_')}/0/scalers"
-    os.makedirs(model_dir, exist_ok=True)
+    create_folder(model_dir)
     joblib.dump(scaler, f"{model_dir}/{scaler_name}.pkl")
     mlflow.log_artifact(f"{model_dir}/{scaler_name}.pkl", artifact_path="scalers")
 
@@ -79,7 +83,7 @@ def save_model(ticker: str, model,  X_train: np.ndarray):
     Saves the trained model using MLflow and as a local .pth file.
     """
     model_dir = f"models/{ticker.replace('.', '_')}/0/model/data"
-    os.makedirs(model_dir, exist_ok=True)
+    create_folder(model_dir)
 
     # Create input example and infer signature
     input_example = X_train[:1]

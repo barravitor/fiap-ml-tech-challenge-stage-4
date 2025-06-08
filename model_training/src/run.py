@@ -1,6 +1,7 @@
 # model_training/src/index.py
 
 import mlflow
+import shutil
 from sklearn.model_selection import train_test_split
 from datetime import datetime
 
@@ -15,13 +16,17 @@ from shared.lstm_model import LSTMModel
 from shared.forecast_service import ForecastService
 
 if __name__ == "__main__":
+    shutil.rmtree("./tmp")
     mlflow.set_experiment("LSTM Training | FIAP ML STAGE 4")
     mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 
     for ticker in LIST_OF_ALLOWED_TICKETS:
         # Start MLflow experiment
-        with mlflow.start_run(run_name=f"LSTM Training - {ticker}", description="Tech Challenge 4"):
+        with mlflow.start_run(run_name=f"LSTM Training - {ticker}", description="Tech Challenge 4") as run:
             if mlflow.active_run():
+                run_id = run.info.run_id
+                print("Run ID:", run_id)
+
                 start_stock_date = "2018-01-01"
                 end_stock_date = datetime.today().strftime('%Y-%m-%d')
 
@@ -73,6 +78,13 @@ if __name__ == "__main__":
                 # Evaluate model
                 forecastService.evaluate_model(model=model, X_test=X_test, y_test=y_test)
 
+                forecastService.validate_predictions(
+                    model=model,
+                    ticker=ticker,
+                    X_test=X_test,
+                    y_test=y_test
+                )
+
                 # Use the last 30 records for forecasting
                 last_30 = df_treated[-30:]
                 df_with_prediction, predictions = forecastService.forecast_n_steps(
@@ -80,4 +92,5 @@ if __name__ == "__main__":
                     df_treated=last_30,
                 )
 
+                print(f"[PAST] Last value for '{TARGET}': {df_treated[TARGET].iloc[-1]}")
                 print([round(float(val), 3) for val in predictions])

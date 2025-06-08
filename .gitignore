@@ -18,4 +18,5 @@ models/
 mlruns/
 data/
 mlartifacts/
+tmp/
 gcp-storage-service-account.json
