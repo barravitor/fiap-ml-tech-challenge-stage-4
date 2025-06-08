@@ -97,17 +97,17 @@ def predict(request: PredictBodySchema):
 
     if df_raw.shape[1] < len(FEATURES_COLS_DEFAULT_AND_DATE):
         raise HTTPException(status_code=400, detail=f"CSV data must be {len(FEATURES_COLS_DEFAULT_AND_DATE)} columns")
-    
-    
+
     client = MlflowClient()
-    model_name = f"LSTM-{request.ticker.upper()}"
-    model_loaded = mlflow.pytorch.load_model(f"models:/{model_name}/Production")
+    MODEL_NAME = f"LSTM-{request.ticker.upper()}"
 
-    print(model_loaded)
+    prod_version = client.get_model_version_by_alias(MODEL_NAME, "Production")
+    mlflow_model_uri = f"models:/{MODEL_NAME}/{prod_version.version}"
+    mlflow_model = mlflow.pytorch.load_model(mlflow_model_uri)
 
+    print(mlflow_model)
 
-
-    alias_info = client.get_model_version_by_alias(model_name, 'Production')
+    alias_info = client.get_model_version_by_alias(MODEL_NAME, 'Production')
 
     forecastService = ForecastService(request.ticker)
 
