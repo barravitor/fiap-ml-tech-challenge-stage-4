@@ -101,11 +101,19 @@ def predict(request: PredictBodySchema):
     client = MlflowClient()
     MODEL_NAME = f"LSTM-{request.ticker.upper()}"
 
-    prod_version = client.get_model_version_by_alias(MODEL_NAME, "Production")
+    print('MODEL_NAME', MODEL_NAME)
+
+    prod_version = client.get_model_version_by_alias(MODEL_NAME, 'Production')
+
+    print('prod_version', prod_version)
+
     mlflow_model_uri = f"models:/{MODEL_NAME}/{prod_version.version}"
+
+    print('mlflow_model_uri', mlflow_model_uri)
+
     mlflow_model = mlflow.pytorch.load_model(mlflow_model_uri)
 
-    print(mlflow_model)
+    print('mlflow_model', mlflow_model)
 
     alias_info = client.get_model_version_by_alias(MODEL_NAME, 'Production')
 

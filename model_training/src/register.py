@@ -25,4 +25,3 @@ client.set_registered_model_alias(
     version=result.version,
     alias="Production",
 )
-# client.set_model_version_tag(MODEL_NAME, result.version, 'stage', 'Production')
