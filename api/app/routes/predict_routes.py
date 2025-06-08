@@ -1,5 +1,6 @@
 # app/routes/predict_routes.py
 
+import os
 import io
 from typing import List
 import pandas as pd
@@ -12,6 +13,7 @@ from shared.utils import preprocess_dataframe
 from ..schemas.predict_schemas import PredictBodySchema, PredictResponseSchema, DataItem
 from shared.config import FEATURES_COLS_DEFAULT, MINIMUM_NUMBER_OF_DATA, NUMBER_OF_DAYS_TO_FORECAST
 from shared.forecast_service import ForecastService
+from google.auth import default
 
 predict_router = APIRouter()
 
@@ -98,6 +100,13 @@ async def predict(request: PredictBodySchema):
 
     if df_raw.shape[1] < len(FEATURES_COLS_DEFAULT_AND_DATE):
         raise HTTPException(status_code=400, detail=f"CSV data must be {len(FEATURES_COLS_DEFAULT_AND_DATE)} columns")
+    
+
+    creds, proj = default()
+    print("[DEBUG] GCP project:", proj)
+
+
+    print("[DEBUG] GOOGLE_APPLICATION_CREDENTIALS =", os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
 
     client = MlflowClient()
     MODEL_NAME = f"LSTM-{request.ticker.upper()}"
@@ -111,6 +120,10 @@ async def predict(request: PredictBodySchema):
     mlflow_model_uri = f"models:/{MODEL_NAME}/{prod_version.version}"
 
     print('mlflow_model_uri', mlflow_model_uri)
+
+    artifacts = client.list_artifacts(alias_info.run_id)
+    print([a.path for a in artifacts])
+    print("MLFLOW_TRACKING_URI:", mlflow.get_tracking_uri())
 
     mlflow_model = await run_in_threadpool(mlflow.pytorch.load_model, mlflow_model_uri)
 
