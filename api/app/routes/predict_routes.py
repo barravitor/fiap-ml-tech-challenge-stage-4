@@ -2,6 +2,7 @@
 
 import os
 import io
+import torch
 from typing import List
 import pandas as pd
 import mlflow
@@ -125,7 +126,7 @@ async def predict(request: PredictBodySchema):
     print([a.path for a in artifacts])
     print("MLFLOW_TRACKING_URI:", mlflow.get_tracking_uri())
 
-    mlflow_model = mlflow.pytorch.load_model(mlflow_model_uri)
+    mlflow_model = mlflow.pytorch.load_model(mlflow_model_uri, map_location=torch.device('cpu'))
 
     print('mlflow_model', mlflow_model)
 
