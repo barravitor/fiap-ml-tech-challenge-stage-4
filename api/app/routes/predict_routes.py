@@ -125,7 +125,7 @@ async def predict(request: PredictBodySchema):
     print([a.path for a in artifacts])
     print("MLFLOW_TRACKING_URI:", mlflow.get_tracking_uri())
 
-    mlflow_model = await run_in_threadpool(mlflow.pytorch.load_model, mlflow_model_uri)
+    mlflow_model = mlflow.pytorch.load_model(mlflow_model_uri)
 
     print('mlflow_model', mlflow_model)
 
