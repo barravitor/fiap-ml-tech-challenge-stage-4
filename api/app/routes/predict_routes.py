@@ -6,6 +6,7 @@ import pandas as pd
 import mlflow
 from mlflow.tracking import MlflowClient
 from fastapi import APIRouter, HTTPException
+from starlette.concurrency import run_in_threadpool
 
 from shared.utils import preprocess_dataframe
 from ..schemas.predict_schemas import PredictBodySchema, PredictResponseSchema, DataItem
@@ -86,7 +87,7 @@ FEATURES_COLS_DEFAULT_AND_DATE = ["Date"] + FEATURES_COLS_DEFAULT
         }
     }
 )
-def predict(request: PredictBodySchema):
+async def predict(request: PredictBodySchema):
     try:
         df_raw = pd.read_csv(io.StringIO(request.csv), skiprows=0)
     except Exception:
@@ -111,7 +112,7 @@ def predict(request: PredictBodySchema):
 
     print('mlflow_model_uri', mlflow_model_uri)
 
-    mlflow_model = mlflow.pytorch.load_model(mlflow_model_uri)
+    mlflow_model = await run_in_threadpool(mlflow.pytorch.load_model, mlflow_model_uri)
 
     print('mlflow_model', mlflow_model)
 
