@@ -67,7 +67,7 @@ def preprocess_dataframe(df: pd.Series):
     return df
 
 def save_scaler(ticker: str, scaler_name: str, scaler: MinMaxScaler):
-    model_dir = f"models/{ticker.replace('.', '_')}"
+    model_dir = f"models/{ticker.replace('.', '_')}/0/scalers"
     os.makedirs(model_dir, exist_ok=True)
     joblib.dump(scaler, f"{model_dir}/{scaler_name}.pkl")
     mlflow.log_artifact(f"{model_dir}/{scaler_name}.pkl", artifact_path="scalers")
@@ -86,7 +86,7 @@ def load_scaler(ticker: str, scaler_name: str, run_id=None, model_version: int =
                 dst_path=f"{scale_path}/{model_version}"
             )
     else:
-        scale_path = f"models/{ticker.replace('.', '_')}/{scaler_name}.pkl"
+        scale_path = f"models/{ticker.replace('.', '_')}/0/scalers/{scaler_name}.pkl"
 
     return joblib.load(scale_path)
 
@@ -94,7 +94,7 @@ def save_model(ticker: str, model,  X_train: np.ndarray):
     """
     Saves the trained model using MLflow and as a local .pth file.
     """
-    model_dir = f"models/{ticker.replace('.', '_')}"
+    model_dir = f"models/{ticker.replace('.', '_')}/0/model/data"
     os.makedirs(model_dir, exist_ok=True)
 
     # Create input example and infer signature
@@ -136,7 +136,7 @@ def load_model(ticker: str, run_id: str = None, model_version: int = 1):
                 dst_path=f"{model_path}/{model_version}"
             )
     else: 
-        model_path = f"models/{ticker.replace('.', '_')}/model.pth"
+        model_path = f"models/{ticker.replace('.', '_')}/0/model/data/model.pth"
 
     model = torch.load(model_path, map_location=DEVICE, weights_only=False)
 
