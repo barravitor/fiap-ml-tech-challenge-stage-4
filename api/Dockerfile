@@ -4,9 +4,11 @@ FROM python:3.10.12-slim
 
 WORKDIR /app
 
-COPY ./requirements.txt /app/requirements.txt
+COPY ./api/requirements.txt /app/requirements.txt
 
-RUN pip install --upgrade pip && pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu && pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip
+RUN pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ./api/app /app/app
 
