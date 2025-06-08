@@ -12,7 +12,10 @@ COPY ./api/app /app/app
 
 COPY ../shared /app/shared
 
-RUN echo "$GOOGLE_CREDENTIALS_JSON" > /app/gcp-storage-service-account.json && ls -l "$GOOGLE_APPLICATION_CREDENTIALS"
+ENV GOOGLE_APPLICATION_CREDENTIALS=/app/gcp-storage-service-account.json
+
+RUN echo "$GOOGLE_CREDENTIALS_JSON" > /app/gcp-storage-service-account.json && \
+    ls -l /app/gcp-storage-service-account.json
 
 EXPOSE 8000
 
