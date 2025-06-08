@@ -121,7 +121,7 @@ async def predict(request: PredictBodySchema):
 
     print('mlflow_model_uri', mlflow_model_uri)
 
-    artifacts = client.list_artifacts(alias_info.run_id)
+    artifacts = client.list_artifacts(prod_version.run_id)
     print([a.path for a in artifacts])
     print("MLFLOW_TRACKING_URI:", mlflow.get_tracking_uri())
 
