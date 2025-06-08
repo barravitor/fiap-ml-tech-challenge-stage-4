@@ -1,7 +1,7 @@
 import sys
 import mlflow
 from mlflow.tracking import MlflowClient
-from shared.config import DEVICE
+import shared.config
 
 TICKER=''
 EXPETIMENTAL_RUN_ID=''

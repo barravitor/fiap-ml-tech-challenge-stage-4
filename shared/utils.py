@@ -72,15 +72,19 @@ def save_scaler(ticker: str, scaler_name: str, scaler: MinMaxScaler):
     joblib.dump(scaler, f"{model_dir}/{scaler_name}.pkl")
     mlflow.log_artifact(f"{model_dir}/{scaler_name}.pkl", artifact_path="scalers")
 
-def load_scaler(ticker: str, scaler_name: str, run_id=None):
+def load_scaler(ticker: str, scaler_name: str, run_id=None, model_version: int = 1):
     scale_path = f"models/{ticker.replace('.', '_')}"
 
     if run_id is not None:
-        scale_path = mlflow.artifacts.download_artifacts(
-            artifact_path=f"scalers/{scaler_name}.pkl",
-            run_id=run_id,
-            dst_path=scale_path
-        )
+        if os.path.exists(f"{scale_path}/{model_version}/scalers/{scaler_name}.pkl"):
+            scale_path = f"{scale_path}/{model_version}/scalers/{scaler_name}.pkl"
+        else:
+            print("Download scaler...")
+            scale_path = mlflow.artifacts.download_artifacts(
+                artifact_path=f"scalers/{scaler_name}.pkl",
+                run_id=run_id,
+                dst_path=f"{scale_path}/{model_version}"
+            )
     else:
         scale_path = f"models/{ticker.replace('.', '_')}/{scaler_name}.pkl"
 
@@ -114,7 +118,7 @@ def save_model(ticker: str, model,  X_train: np.ndarray):
     torch.save(model.state_dict(), f"{model_dir}/model.pth")
     print(f"[INFO] Model saved to: {model_dir}/model.pth")
 
-def load_model(ticker: str, run_id: str = None):
+def load_model(ticker: str, run_id: str = None, model_version: int = 1):
     """
     Saves the trained model using MLflow and as a local .pth file.
     """
@@ -122,11 +126,15 @@ def load_model(ticker: str, run_id: str = None):
     model_path = f"models/{ticker.replace('.', '_')}"
 
     if run_id is not None:
-        model_path = mlflow.artifacts.download_artifacts(
-            artifact_path=f"model/data/model.pth",
-            run_id=run_id,
-            dst_path=model_path
-        )
+        if os.path.exists(f"{model_path}/{model_version}/model/data/model.pth"):
+            model_path = f"{model_path}/{model_version}/model/data/model.pth"
+        else:
+            print("Download model...")
+            model_path = mlflow.artifacts.download_artifacts(
+                artifact_path=f"model/data/model.pth",
+                run_id=run_id,
+                dst_path=f"{model_path}/{model_version}"
+            )
     else: 
         model_path = f"models/{ticker.replace('.', '_')}/model.pth"
 

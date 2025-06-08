@@ -108,6 +108,7 @@ def predict(request: PredictBodySchema):
         df_treated=df_treated,
         number_of_forecast=NUMBER_OF_DAYS_TO_FORECAST,
         run_id=alias_info.run_id,
+        model_version=alias_info.version,
     )
 
     predictions = [round(float(val), 3) for val in predictions]
