@@ -1,8 +1,18 @@
 # app/main.py
+import time
+from fastapi import FastAPI, Request
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+import logging
+
 from fastapi.middleware.cors import CORSMiddleware
 from .routes.index_routes import router
+
+logging.basicConfig(
+    filename="api.log",
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    level=logging.INFO,
+    filemode='a'
+)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -41,6 +51,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    log_details = f"{request.method} {request.url.path} {response.status_code} {process_time:.4f}s"
+    logging.info(log_details)
+    return response
 
 app.include_router(router)
 

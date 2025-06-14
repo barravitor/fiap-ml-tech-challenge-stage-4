@@ -12,6 +12,8 @@ __pycache__
 *.csv
 *.xlsx
 *.json
+*.ini
+*.log
 
 # Ignore folders
 models/
