@@ -1,4 +1,4 @@
-# FIAP TECH CHALLENGE | Creating a Deep Learning Algorithm
+# FIAP TECH CHALLENGE | Creating a Deep Learning Algorithm 
 
 ## Índice
 
